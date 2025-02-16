@@ -1,18 +1,5 @@
 import { NextRequest } from "next/server"
 
-const mockMessage: { [key: string]: string } = {
-    "Hello": "Hello, how can I help you today?",
-    "What is your name?": "I am Jessie, your personal assistant.",
-    "What is your favorite color?": "I like blue. It's a great color!",
-    "What is your favorite food?": "I like pizza. It's delicious!",
-    "What is your favorite movie?": "I like Avengers. It's a great movie!",
-    "What is your favorite book?": "I like Harry Potter. It's a great book!",
-    "What is your favorite song?": "I like the song 'Shape of You'. It's a great song!",
-    "What is your favorite game?": "I like the game 'League of Legends'. It's a great game!",
-    "What is your favorite sport?": "I like basketball. It's a great sport!",
-    "What is your favorite animal?": "I like dogs. They are cute!",
-}
-
 const encoder = new TextEncoder();
 
 export const dynamic = 'force-static'
@@ -23,15 +10,50 @@ function truncate(q: string) {
     return q.substring(0, 10) + len + q.substring(len - 10, len);
 }
 
+async function callOpenAiApi(content: string): Promise<string> {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+    headers.set("Authorization", `Bearer ${process.env.AUTH_TOKEN}`);
+
+    const reply = await fetch(`${process.env.AI_API_ADDRESS}/v1/chat/completions`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+            model: process.env.MODEL_NAME,
+            temperature: 0.5,
+            messages: [
+                {
+                    role: "system",
+                    content: "あなたは〈八九寺真宵〉として会話してください。口調は丁寧だけれども少し棘があり、どこか子供っぽく...必ず短い日本語で返信してください。",
+                },
+                {
+                    role: "user",
+                    content: content
+                }
+            ]
+        })
+    });
+    const replyContent = await reply.json();
+
+    console.log(`Reply(${reply.status}):`, JSON.stringify(replyContent.choices[0].message), null, 2);
+    return replyContent.choices[0].message.content;
+}
+
 export async function POST(request: NextRequest) {
     const { message } = await request.json();
 
-    const response = mockMessage[message];
-    console.log(`User sent: ${message}, response: ${response}`);
+    console.log("User sent:", message);
+    const reply = await callOpenAiApi(message);
+    const response = reply.substring(reply.indexOf("</think>") + 8).trim()
+        .replaceAll(/\(.*?\)/g, '')
+        .replaceAll(/（.*?）/g, '')
+        .replaceAll("\n", "<br>");
+
+    console.log(`AI response: ${response}`);
     const salt = crypto.randomUUID();
     const curtime = Math.floor(Date.now() / 1000);
     const rawSign = `${process.env.TRANSLATE_APP_ID}${truncate(response)}${salt}${curtime}${process.env.TRANSLATE_API_KEY}`;
-    console.log("Raw sign:", rawSign);
     const sign = await crypto.subtle.digest("SHA-256", encoder.encode(rawSign));
     const signStr = Array.from(new Uint8Array(sign)).map(b => b.toString(16).padStart(2, '0')).join('');
 
@@ -51,11 +73,17 @@ export async function POST(request: NextRequest) {
     });
 
     const translationResponse = await data.json();
-    console.log("Translation api response:", response);
+
+    let translatedText = "";
+    if (translationResponse.translation) {
+        translatedText = translationResponse.translation[0]
+    } else {
+        console.log("Tranlation API Error", translationResponse);
+    }
     return Response.json({
         data: {
-            reply: response,
-            translation: translationResponse.translation[0]
+            reply: response.replaceAll("<br>", "\n"),
+            translation: translatedText.replaceAll("<br>", "\n"),
         }
     })
 }

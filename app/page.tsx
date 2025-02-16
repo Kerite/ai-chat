@@ -14,6 +14,8 @@ export default function Home() {
   });
 
   const handleSendMessage = async (message: string) => {
+    setLastMessage(message);
+    setLastReply({reply: "......", translation: ""});
     const response = await fetch("/api/chat", {
       method: "POST",
       body: JSON.stringify({ message })
@@ -21,7 +23,6 @@ export default function Home() {
     console.log(`User sent: ${message}`);
     const data = await response.json();
     console.log(data);
-    setLastMessage(message);
     setLastReply(data.data);
   }
 
@@ -31,7 +32,7 @@ export default function Home() {
         <div className="bg-url(../public/character.png) max-w-[565px] max-h-[800px]">
           <Image src={character} alt="character" className="w-[565px] h-[800px]" width={565} height={800} />
         </div>
-        <div id="right-container" className="space-y-[40px] flex flex-col h-[calc(100vh-80px)]">
+        <div id="right-container" className="space-y-[40px] flex flex-col h-[calc(100vh-80px)] max-w-[794px]">
           <div className="flex-grow">
             <ReplyMessageBox reply={lastReply} characterId="zhenxiao" />
           </div>
