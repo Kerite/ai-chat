@@ -9,7 +9,7 @@ export interface ReplyMessageBoxProps {
   className?: string;
 }
 
-export function ReplyMessageBox({ reply, characterId, className }: ReplyMessageBoxProps) {
+export function ReplyMessageBox({ reply, className }: ReplyMessageBoxProps) {
   return (
     <div className={`${className}`}>
       <div id="reply-bubble" className="relative rounded-[20px] border-[#A55D4F] border-[2px] p-[20px] bg-[#FDF1EA] mt-[50px]">
