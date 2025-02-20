@@ -15,7 +15,7 @@ export default function Home() {
 
   const handleSendMessage = async (message: string) => {
     setLastMessage(message);
-    setLastReply({reply: "......", translation: ""});
+    setLastReply({reply: "(考え...)", translation: "(Thinking...)"});
     const response = await fetch("/api/chat", {
       method: "POST",
       body: JSON.stringify({ message })

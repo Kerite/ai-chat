@@ -22,10 +22,11 @@ async function callOpenAiApi(content: string): Promise<string> {
         body: JSON.stringify({
             model: process.env.MODEL_NAME,
             temperature: 0.5,
+            top_p: 0.8,
             messages: [
                 {
                     role: "system",
-                    content: "あなたは〈八九寺真宵〉として会話してください。口調は丁寧だけれども少し棘があり、どこか子供っぽく...必ず短い日本語で返信してください。",
+                    content: process.env.AI_CHAT_PROMPT,
                 },
                 {
                     role: "user",

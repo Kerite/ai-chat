@@ -10,7 +10,7 @@ export function LoginButton() {
       <div>
         <span>{user.name}</span>
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/api/auth/logout?returnTo=http://localhost:3000/login">(Sign Out)</a>
+      <a href={"/api/auth/logout?returnTo=" + window.location.origin + "/login"}>(Sign Out)</a>
       </div>
     </>)
   }
