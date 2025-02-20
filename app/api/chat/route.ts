@@ -3,6 +3,7 @@ import { NextRequest } from "next/server"
 const encoder = new TextEncoder();
 
 export const dynamic = 'force-static'
+export const maxDuration = 60;
 
 function truncate(q: string) {
     const len = q.length;
